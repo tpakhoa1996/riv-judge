@@ -5,6 +5,7 @@
 #include <ctime>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "rapidjson/document.h"
 
 using namespace std;
 
