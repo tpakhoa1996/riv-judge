@@ -1,5 +1,5 @@
 {
-	"Configuration" : [
+	"Configuration" : {
 		"Languge" : {
 			"cpp": {
 				"compile": "g++ -std=c++11 $name.cpp -o $name",
@@ -16,7 +16,7 @@
 			"java": {
 				"compile": "javac $name.java",
 				"run": "java $name.class",
-				clear_up: [
+				"clean_up": [
 					"$name.class"
 				]
 			}
@@ -32,5 +32,5 @@
 			"submission" : "$<contestant>/$<round>/$<problem>.[cpp,java,py]",
 			"checker" : "$<round>/$<problem>/testChecker.cpp"
 		}
-	]
+	}
 }
