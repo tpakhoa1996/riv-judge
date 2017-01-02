@@ -62,7 +62,7 @@ void get_absolute_path(char res[], char path[]) {
 		strcpy(res, path);
 }
 
-
+//TODO: checking for existence of -t and -s option
 void extract_judging_info(int argNum, char* arg[]) {
 	char tmp[510];
 	dir_cat(config_dir, "/home/brian/CODE/Testing_Soft", "default_config.json");
@@ -223,5 +223,7 @@ void get_config(Document &config) {
 int main(int argNum, char* arg[]) {
 	extract_judging_info(argNum, arg);
 	get_config(config);
+	//TODO: verify config
+	//TODO: testing
 	return 0;
 }
