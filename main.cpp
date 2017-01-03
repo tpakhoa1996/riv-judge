@@ -8,10 +8,12 @@
 #include "rapidjson/document.h"
 #include <vector>
 #include <string>
+#include <set>
 
 using namespace std;
 
 typedef rapidjson::Document Document;
+typedef rapidjson::Value Value;
 
 const int dirLen= int(1e3) + 111;
 const int configLen = int(1e6) + 111;
@@ -62,12 +64,14 @@ void get_absolute_path(char res[], char path[]) {
 		strcpy(res, path);
 }
 
-//TODO: checking for existence of -t and -s option
+//TODO: checking for existence of -t and -s option [Done]
 void extract_judging_info(int argNum, char* arg[]) {
 	char tmp[510];
+	set<string> requiredOpt {"-t", "-s"};
 	dir_cat(config_dir, "/home/brian/CODE/Testing_Soft", "default_config.json");
 	for (int i = 1; i < argNum;) {
 		if (strcmp(arg[i], "-t") == 0) /* test directory */ {
+			requiredOpt.erase("-t");
 			if (i + 1 >= argNum) {
 				cerr << "Test directory was not provided!" << endl;
 				exit(EXIT_FAILURE);
@@ -81,6 +85,7 @@ void extract_judging_info(int argNum, char* arg[]) {
 			strcpy(test_dir, tmp);
 			i += 2;
 		} else if (strcmp(arg[i], "-s") == 0) /* submission directory */ {
+			requiredOpt.erase("-s");
 			if (i + 1 >= argNum) {
 				cerr << "Submission directory was not provided!" << endl;
 				exit(EXIT_FAILURE);
@@ -108,6 +113,14 @@ void extract_judging_info(int argNum, char* arg[]) {
 	}
 	if (!is_a_file(config_dir)) {
 		cerr << "Directory for configuration does not exist!" << endl;
+		exit(EXIT_FAILURE);
+	}
+	if (!requiredOpt.empty()) {
+		cerr << "The following options was not provided: ";
+		while (!requiredOpt.empty()) {
+			cerr << (*requiredOpt.begin()) << " ";
+			requiredOpt.erase(requiredOpt.begin());
+		}
 		exit(EXIT_FAILURE);
 	}
 }
@@ -208,6 +221,14 @@ void return_config_error(Document &config, vector<int> &config_file) {
 	cerr << "-->" << error_st << endl;
 }
 
+void exit_mess(string mess = "", void (*mess_func)() = 0) {
+	if (!mess.empty())
+		cerr << mess;
+	if (mess_func != 0)
+		mess_func();
+	exit(EXIT_FAILURE);
+}
+
 void get_config(Document &config) {
 	vector<int> config_file;
 	config_file.clear();
@@ -220,10 +241,57 @@ void get_config(Document &config) {
 	config_file.clear();
 }
 
+void config_return_field_error(string object_name, Value& x, set<string> requiredField) {
+	for (Value::ConstMemberIterator it = x.MemberBegin();
+			it != x.MemberEnd(); it++) {
+		string field_name = it->name.GetString();
+		if (!requiredField.count(field_name)) {
+			requiredField.clear();
+			exit_mess("Field \"" + field_name + "\" in object \"" + 
+					object_name + "\" has no meaning.\n");
+		}
+		requiredField.erase(field_name);
+	}
+	if (!requiredField.empty()) {
+		cerr << "The following field in object \"" +
+			object_name + "\" was not provided: ";
+		while (!requiredField.empty()) {
+			cerr << "\"" << (*requiredField.begin()) << "\" ";
+			requiredField.erase(requiredField.begin());
+		}
+		exit(EXIT_FAILURE);
+	}
+}
+
+void config_field_verification(Document &config) {
+	if (!config.HasMember("Configuration"))
+		exit_mess("Config should be a json of Configuration object\n");
+	Value &conf = config["Configuration"];
+	config_return_field_error("Configuration", conf, {"Language", "Dir"});
+	Value &lang = conf["Language"];
+	for (Value::ConstMemberIterator it = lang.MemberBegin();
+			it != lang.MemberEnd(); it++) {
+		char* lang_name;
+		strcpy(lang_name, it->name.GetString());
+		config_return_field_error(lang_name,
+				lang[lang_name], {"compile", "run", "clean_up"});
+	}
+	Value &dir = conf["Dir"];
+	if (dir.HasMember("generator"))
+		config_return_field_error("Dir", dir, 
+				{"var", "generator", "checker", "source", "submission"});
+	else if (dir.HasMember("test_input") || dir.HasMember("test_output"))
+		config_return_field_error("Dir", dir,
+				{"var", "test_input", "test_output", "submission"});
+	else
+		exit_mess("Cannot specify any type of testing.\n");
+}
+
 int main(int argNum, char* arg[]) {
 	extract_judging_info(argNum, arg);
 	get_config(config);
-	//TODO: verify config
+	//TODO: verify config [Done]
+	config_field_verification(config);
 	//TODO: testing
 	return 0;
 }

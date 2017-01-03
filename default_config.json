@@ -1,6 +1,6 @@
 {
 	"Configuration" : {
-		"Languge" : {
+		"Language" : {
 			"cpp": {
 				"compile": "g++ -std=c++11 $name.cpp -o $name",
 				"run": "./$name",
@@ -22,7 +22,7 @@
 			}
 		},
 		"Dir" : {
-			"variable" : {
+			"var" : {
 				"round" : "(a-z0-9)*",
 				"problem" : "(a-z0-9)*",
 				"contestant": "a-z0-9)*"
