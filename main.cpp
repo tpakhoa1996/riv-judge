@@ -8,9 +8,15 @@
 #include "rapidjson/document.h"
 #include <vector>
 #include <string>
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+#include <boost/filesystem.hpp>
+#include <boost/process.hpp>
+#undef BOOST_NO_CXX11_SCOPED_ENUMS
 #include <set>
 
 using namespace std;
+namespace bf = ::boost::filesystem;
+namespace bp = ::boost::process;
 
 typedef rapidjson::Document Document;
 typedef rapidjson::Value Value;
@@ -21,12 +27,12 @@ const int configLen = int(1e6) + 111;
 char test_dir[dirLen], sub_dir[dirLen], config_dir[dirLen], config_json[configLen];
 Document config;
 
-bool existed_path(char dir[]) {
+bool existed_path(char* dir) {
 	struct stat buf;
 	return stat(dir, &buf) == 0;
 }
 
-bool is_a_directory(char dir[]) {
+bool is_a_directory(char* dir) {
 	struct stat buf;
 	if (stat(dir, &buf) != 0)
 		return false;
@@ -287,11 +293,18 @@ void config_field_verification(Document &config) {
 		exit_mess("Cannot specify any type of testing.\n");
 }
 
+//TODO: research about boost
+void testing() {
+	Value &conf = config["Configuration"];
+
+}
+
 int main(int argNum, char* arg[]) {
 	extract_judging_info(argNum, arg);
 	get_config(config);
 	//TODO: verify config [Done]
 	config_field_verification(config);
 	//TODO: testing
+	testing();
 	return 0;
 }
